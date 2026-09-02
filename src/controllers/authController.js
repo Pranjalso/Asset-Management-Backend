@@ -44,11 +44,12 @@ async function sanitizeUserResponse(user) {
 }
 
 async function sendAuthResponse(res, user, message) {
-    await setAuthCookies(res, user);
+    const { accessToken } = await setAuthCookies(res, user);
     const sanitizedUser = await sanitizeUserResponse(user);
     return res.json({
         success: true,
         message,
+        token: accessToken,
         user: sanitizedUser,
     });
 }
