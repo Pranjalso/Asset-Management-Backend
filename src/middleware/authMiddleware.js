@@ -32,8 +32,8 @@ function extractToken(req) {
 function buildCookieOptions(maxAgeMs) {
     return {
         httpOnly: true,
-        secure: IS_PRODUCTION,
-        sameSite: 'lax',
+        secure: true,
+        sameSite: 'none',
         path: '/',
         maxAge: maxAgeMs,
     };
@@ -118,8 +118,8 @@ async function setAuthCookies(res, user) {
 }
 
 function clearCookiePair(res, names) {
-    res.clearCookie(names.access, { httpOnly: true, secure: IS_PRODUCTION, sameSite: 'lax', path: '/' });
-    res.clearCookie(names.refresh, { httpOnly: true, secure: IS_PRODUCTION, sameSite: 'lax', path: '/' });
+    res.clearCookie(names.access, { httpOnly: true, secure: true, sameSite: 'none', path: '/' });
+    res.clearCookie(names.refresh, { httpOnly: true, secure: true, sameSite: 'none', path: '/' });
 }
 
 function clearAuthCookies(res, role) {
