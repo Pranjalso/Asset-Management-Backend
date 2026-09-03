@@ -122,6 +122,70 @@ class OrgController {
         }
     }
 
+    static async listRecycledBranches(req, res, next) {
+        try {
+            const companyId = requireCompany(req, res);
+            if (!companyId) return;
+            const { page = 1, pageSize = 20 } = req.query;
+            const offset = (Math.max(1, parseInt(page, 10) || 1) - 1) * (parseInt(pageSize, 10) || 20);
+            
+            const result = await OrgModel.listRecycledBranches(companyId, {
+                pageSize: parseInt(pageSize),
+                offset
+            });
+            
+            res.json({
+                success: true,
+                data: result.rows.map(OrgModel.mapBranch),
+                total: result.total,
+                page: parseInt(page),
+                pageSize: parseInt(pageSize)
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    static async restoreBranch(req, res, next) {
+        try {
+            const companyId = requireCompany(req, res);
+            if (!companyId) return;
+            const { id } = req.params;
+            
+            const branch = await OrgModel.restoreBranch(companyId, id);
+            if (!branch) {
+                return res.status(404).json({ success: false, error: 'Recycled branch not found' });
+            }
+
+            res.json({
+                success: true,
+                message: 'Branch restored successfully'
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    static async hardDeleteBranch(req, res, next) {
+        try {
+            const companyId = requireCompany(req, res);
+            if (!companyId) return;
+            const { id } = req.params;
+            
+            const branch = await OrgModel.hardDeleteBranch(companyId, id);
+            if (!branch) {
+                return res.status(404).json({ success: false, error: 'Recycled branch not found' });
+            }
+
+            res.json({
+                success: true,
+                message: 'Branch permanently deleted'
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
     // Department Management
     static async listDepartments(req, res, next) {
         try {
@@ -223,6 +287,70 @@ class OrgController {
             res.json({
                 success: true,
                 message: 'Department deleted successfully'
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    static async listRecycledDepartments(req, res, next) {
+        try {
+            const companyId = requireCompany(req, res);
+            if (!companyId) return;
+            const { page = 1, pageSize = 20 } = req.query;
+            const offset = (Math.max(1, parseInt(page, 10) || 1) - 1) * (parseInt(pageSize, 10) || 20);
+            
+            const result = await OrgModel.listRecycledDepartments(companyId, {
+                pageSize: parseInt(pageSize),
+                offset
+            });
+            
+            res.json({
+                success: true,
+                data: result.rows.map(OrgModel.mapDepartment),
+                total: result.total,
+                page: parseInt(page),
+                pageSize: parseInt(pageSize)
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    static async restoreDepartment(req, res, next) {
+        try {
+            const companyId = requireCompany(req, res);
+            if (!companyId) return;
+            const { id } = req.params;
+            
+            const department = await OrgModel.restoreDepartment(companyId, id);
+            if (!department) {
+                return res.status(404).json({ success: false, error: 'Recycled department not found' });
+            }
+
+            res.json({
+                success: true,
+                message: 'Department restored successfully'
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    static async hardDeleteDepartment(req, res, next) {
+        try {
+            const companyId = requireCompany(req, res);
+            if (!companyId) return;
+            const { id } = req.params;
+            
+            const department = await OrgModel.hardDeleteDepartment(companyId, id);
+            if (!department) {
+                return res.status(404).json({ success: false, error: 'Recycled department not found' });
+            }
+
+            res.json({
+                success: true,
+                message: 'Department permanently deleted'
             });
         } catch (error) {
             next(error);

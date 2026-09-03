@@ -259,6 +259,27 @@ async function migrate() {
             ) THEN
                 ALTER TABLE asset_categories ADD COLUMN status VARCHAR(30) DEFAULT 'active';
             END IF;
+
+            IF NOT EXISTS (
+                SELECT 1 FROM information_schema.columns
+                WHERE table_name = 'branches' AND column_name = 'recycled_at'
+            ) THEN
+                ALTER TABLE branches ADD COLUMN recycled_at TIMESTAMP;
+            END IF;
+
+            IF NOT EXISTS (
+                SELECT 1 FROM information_schema.columns
+                WHERE table_name = 'departments' AND column_name = 'status'
+            ) THEN
+                ALTER TABLE departments ADD COLUMN status VARCHAR(30) DEFAULT 'active';
+            END IF;
+
+            IF NOT EXISTS (
+                SELECT 1 FROM information_schema.columns
+                WHERE table_name = 'departments' AND column_name = 'recycled_at'
+            ) THEN
+                ALTER TABLE departments ADD COLUMN recycled_at TIMESTAMP;
+            END IF;
         END $$;
     `);
 

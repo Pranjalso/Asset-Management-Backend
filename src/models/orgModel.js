@@ -34,10 +34,10 @@ class OrgModel {
 
     static async listBranches(companyId, { pageSize, offset, status } = {}) {
         const params = [companyId];
-        let extra = '';
+        let extra = ' AND (status IS NULL OR status != \'recycled\')';
         if (status) {
             params.push(status);
-            extra = ` AND status = $${params.length}`;
+            extra += ` AND status = $${params.length}`;
         }
         const count = await pool.query(
             `SELECT COUNT(*)::int AS total FROM branches WHERE company_id = $1${extra}`,
@@ -80,6 +80,38 @@ class OrgModel {
 
     static async deleteBranch(companyId, id) {
         const result = await pool.query(
+            `UPDATE branches SET status = 'recycled', recycled_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+             WHERE id = $1 AND company_id = $2 RETURNING *`,
+            [id, companyId]
+        );
+        return result.rows[0];
+    }
+
+    static async listRecycledBranches(companyId, { pageSize, offset } = {}) {
+        const count = await pool.query(
+            `SELECT COUNT(*)::int AS total FROM branches WHERE company_id = $1 AND status = 'recycled'`,
+            [companyId]
+        );
+        const limit = pageSize || 100;
+        const off = offset || 0;
+        const result = await pool.query(
+            `SELECT * FROM branches WHERE company_id = $1 AND status = 'recycled' ORDER BY updated_at DESC LIMIT $2 OFFSET $3`,
+            [companyId, limit, off]
+        );
+        return { rows: result.rows, total: count.rows[0].total };
+    }
+
+    static async restoreBranch(companyId, id) {
+        const result = await pool.query(
+            `UPDATE branches SET status = 'active', recycled_at = NULL, updated_at = CURRENT_TIMESTAMP
+             WHERE id = $1 AND company_id = $2 RETURNING *`,
+            [id, companyId]
+        );
+        return result.rows[0];
+    }
+
+    static async hardDeleteBranch(companyId, id) {
+        const result = await pool.query(
             'DELETE FROM branches WHERE id = $1 AND company_id = $2 RETURNING *',
             [id, companyId]
         );
@@ -88,11 +120,11 @@ class OrgModel {
 
     static async listDepartments(companyId, { pageSize, offset } = {}) {
         const count = await pool.query(
-            'SELECT COUNT(*)::int AS total FROM departments WHERE company_id = $1',
+            `SELECT COUNT(*)::int AS total FROM departments WHERE company_id = $1 AND (status IS NULL OR status != 'recycled')`,
             [companyId]
         );
         const result = await pool.query(
-            `SELECT * FROM departments WHERE company_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3`,
+            `SELECT * FROM departments WHERE company_id = $1 AND (status IS NULL OR status != 'recycled') ORDER BY created_at DESC LIMIT $2 OFFSET $3`,
             [companyId, pageSize || 100, offset || 0]
         );
         return { rows: result.rows, total: count.rows[0].total };
@@ -121,6 +153,38 @@ class OrgModel {
     }
 
     static async deleteDepartment(companyId, id) {
+        const result = await pool.query(
+            `UPDATE departments SET status = 'recycled', recycled_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+             WHERE id = $1 AND company_id = $2 RETURNING *`,
+            [id, companyId]
+        );
+        return result.rows[0];
+    }
+
+    static async listRecycledDepartments(companyId, { pageSize, offset } = {}) {
+        const count = await pool.query(
+            `SELECT COUNT(*)::int AS total FROM departments WHERE company_id = $1 AND status = 'recycled'`,
+            [companyId]
+        );
+        const limit = pageSize || 100;
+        const off = offset || 0;
+        const result = await pool.query(
+            `SELECT * FROM departments WHERE company_id = $1 AND status = 'recycled' ORDER BY updated_at DESC LIMIT $2 OFFSET $3`,
+            [companyId, limit, off]
+        );
+        return { rows: result.rows, total: count.rows[0].total };
+    }
+
+    static async restoreDepartment(companyId, id) {
+        const result = await pool.query(
+            `UPDATE departments SET status = 'active', recycled_at = NULL, updated_at = CURRENT_TIMESTAMP
+             WHERE id = $1 AND company_id = $2 RETURNING *`,
+            [id, companyId]
+        );
+        return result.rows[0];
+    }
+
+    static async hardDeleteDepartment(companyId, id) {
         const result = await pool.query(
             'DELETE FROM departments WHERE id = $1 AND company_id = $2 RETURNING *',
             [id, companyId]
